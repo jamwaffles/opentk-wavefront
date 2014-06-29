@@ -2,11 +2,11 @@
 
 namespace ObjLoader
 {
-	class DemoLoader
+	public class WavefrontModel
 	{
-		public static void Main (string[] args)
+		public WavefrontModel ()
 		{
-
 		}
 	}
 }
+
