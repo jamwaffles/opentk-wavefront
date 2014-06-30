@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -53,14 +54,14 @@ namespace ObjLoader
 					string[] point2 = tokens [3].Split ('/');
 
 					faces.Add (new Face () {
-						v1 = Convert.ToInt32(point0[0]),
-						vn1 = Convert.ToInt32(point0[2]),
+						v1 = Convert.ToInt32(point0[0]) - 1,
+						vn1 = Convert.ToInt32(point0[2]) - 1,
 
-						v2 = Convert.ToInt32(point1[0]),
-						vn2 = Convert.ToInt32(point1[2]),
+						v2 = Convert.ToInt32(point1[0]) - 1,
+						vn2 = Convert.ToInt32(point1[2]) - 1,
 
-						v3 = Convert.ToInt32(point2[0]),
-						vn3 = Convert.ToInt32(point2[2])
+						v3 = Convert.ToInt32(point2[0]) - 1,
+						vn3 = Convert.ToInt32(point2[2]) - 1
 					});
 
 					break;
@@ -81,15 +82,17 @@ namespace ObjLoader
 		{
 			GL.Begin (PrimitiveType.Triangles);
 
-			GL.Color3(1.0f, 0.0f, 0.0f); 
-			GL.Vertex3(-1.0f, -1.0f, 4.0f);
+			foreach (Face face in faces) {
+				GL.Normal3(normals[face.vn1].X, normals[face.vn1].Y, normals[face.vn1].Z);
+				GL.Vertex3(vertices[face.v1].X, vertices[face.v1].Y, vertices[face.v1].Z);
 
-			GL.Color3(0.0f, 1.0f, 0.0f);
-			GL.Vertex3(1.0f, -1.0f, 4.0f);
+				GL.Normal3(normals[face.vn2].X, normals[face.vn2].Y, normals[face.vn2].Z);
+				GL.Vertex3(vertices[face.v2].X, vertices[face.v2].Y, vertices[face.v2].Z);
 
-			GL.Color3(0.0f, 0.0f, 1.0f);
-			GL.Vertex3(0.0f, 1.0f, 4.0f);
-
+				GL.Normal3(normals[face.vn3].X, normals[face.vn3].Y, normals[face.vn3].Z);
+				GL.Vertex3(vertices[face.v3].X, vertices[face.v3].Y, vertices[face.v3].Z);
+			}
+				
 			GL.End();
 		}
 	}
