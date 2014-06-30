@@ -6,9 +6,10 @@ namespace ObjLoader
 	{
 		public static void Main (string[] args)
 		{
-			WavefrontModel model = new WavefrontModel ("./sphere-lowpoly.obj");
-
-			Console.ReadKey ();
+			using (App app = new App())
+			{
+				app.Run(60.0);
+			}
 		}
 	}
 }
