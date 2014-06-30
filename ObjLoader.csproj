@@ -48,7 +48,7 @@
     <Content Include="sphere-lowpoly.obj">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="sphere-lowpoly.mtl">
+    <Content Include="cube.obj">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

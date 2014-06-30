@@ -8,6 +8,7 @@ namespace ObjLoader
 	public class App: GameWindow
 	{
 		WavefrontModel testModel;
+		double angle = 0;
 
 		public App(): base(800, 600, new OpenTK.Graphics.GraphicsMode(32, 16, 0, 4))
 		{
@@ -20,7 +21,7 @@ namespace ObjLoader
 
 			Title = "Wavefront model loader test";
 
-			testModel = new WavefrontModel ("./sphere-lowpoly.obj");
+			testModel = new WavefrontModel ("./cube.obj");
 
 			GL.Light(LightName.Light0, LightParameter.Position, new float[] { 2.0f, 2.0f, -0.5f });
 			GL.Light(LightName.Light0, LightParameter.Ambient, new float[] { 0.3f, 0.3f, 0.3f, 1.0f });
@@ -42,16 +43,23 @@ namespace ObjLoader
 
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-			// Matrix4 modelview = Matrix4.LookAt(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY);
 			Matrix4 modelview = Matrix4.LookAt(0f, 0f, 5f, 0f, 0f, 0f, 0f, 1f, 0f);
 
 			GL.MatrixMode(MatrixMode.Modelview);
 
 			GL.LoadMatrix(ref modelview);
 
+			GL.Rotate (angle, new Vector3d (0, 1, 0));
 			testModel.draw ();
 
 			SwapBuffers ();
+		}
+
+		protected override void OnUpdateFrame (FrameEventArgs e)
+		{
+			base.OnUpdateFrame (e);
+
+			angle += 0.5;
 		}
 
 		protected override void OnResize(EventArgs e)

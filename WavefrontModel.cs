@@ -80,6 +80,9 @@ namespace ObjLoader
 
 		public void draw() 
 		{
+			GL.Disable(EnableCap.PolygonOffsetFill);
+			GL.PolygonMode (MaterialFace.FrontAndBack, PolygonMode.Line);
+
 			GL.Begin (PrimitiveType.Triangles);
 
 			foreach (Face face in faces) {
