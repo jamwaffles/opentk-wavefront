@@ -89,8 +89,6 @@ namespace ObjLoader
 			vbo = new Vbo ();
 
 			vbo.loadInterleaved (ref points);
-//			vbo.loadNormalData (ref normals);
-//			vbo.loadVertexData (ref vertices);
 			vbo.loadIndexData (ref faceIndices);
 		}
 

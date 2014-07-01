@@ -14,6 +14,7 @@ namespace ObjLoader
 		public int elementBufferID;
 
 		int numElements;
+		List<int> indices = new List<int> ();
 
 		public void loadInterleaved (ref List<Vertex> interleaved)
 		{
@@ -40,8 +41,10 @@ namespace ObjLoader
 			numElements = interleaved.Count;
 		}
 
-		public void loadIndexData(ref List<int> indices)
+		public void loadIndexData(ref List<int> data)
 		{
+			indices = data;
+
 			int bufferSize;
 
 			// Generate Array Buffer Id
@@ -71,7 +74,8 @@ namespace ObjLoader
 			GL.BindBuffer(BufferTarget.ArrayBuffer, interleavedBufferID);
 			GL.VertexPointer(3, VertexPointerType.Float, Vertex.Stride, new IntPtr(0));
 			GL.NormalPointer(NormalPointerType.Float, Vertex.Stride, new IntPtr(Vector3.SizeInBytes));
-			GL.DrawArrays(PrimitiveType.Triangles, 0, numElements);
+			//GL.DrawArrays(PrimitiveType.Triangles, 0, numElements);
+			GL.DrawElements (PrimitiveType.Triangles, numElements, DrawElementsType.UnsignedInt, indices.ToArray());
 		}
 	}
 }
