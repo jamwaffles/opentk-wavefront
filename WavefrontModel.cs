@@ -20,7 +20,7 @@ namespace ObjLoader
 
 		List<int> faceIndices = new List<int> ();
 
-		List<Vector3> interleaved = new List<Vector3> ();
+		List<Vertex> points = new List<Vertex> ();
 
 		Vbo vbo;
 
@@ -62,7 +62,11 @@ namespace ObjLoader
 						vn3 = Convert.ToInt32 (point2 [2]) - 1
 					};
 
-					faces.Add (face);
+//					faces.Add (face);
+
+					points.Add( new Vertex () { pos = vertices[face.v1], norm = normals[face.vn1] });
+					points.Add( new Vertex () { pos = vertices[face.v2], norm = normals[face.vn2] });
+					points.Add( new Vertex () { pos = vertices[face.v3], norm = normals[face.vn3] });
 
 					faceIndices.Add (face.vn1);
 					faceIndices.Add (face.vn2);
@@ -84,19 +88,9 @@ namespace ObjLoader
 		private void loadVbo() {
 			vbo = new Vbo ();
 
-			// Interleave vertex and normal data
-//			foreach (Face face in faces) {
-//				interleaved.Add (normals[face.vn1]);
-//				interleaved.Add (normals[face.vn2]);
-//				interleaved.Add (normals[face.vn3]);
-//
-//				interleaved.Add (vertices[face.v1]);
-//				interleaved.Add (vertices[face.v2]);
-//				interleaved.Add (vertices[face.v3]);
-//			}
-
-			vbo.loadNormalData (ref normals);
-			vbo.loadVertexData (ref vertices);
+			vbo.loadInterleaved (ref points);
+//			vbo.loadNormalData (ref normals);
+//			vbo.loadVertexData (ref vertices);
 			vbo.loadIndexData (ref faceIndices);
 		}
 
