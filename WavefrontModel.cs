@@ -14,9 +14,13 @@ namespace ObjLoader
 
 	public class WavefrontModel
 	{
-		List<Vector3d> vertices = new List<Vector3d>();
-		List<Vector3d> normals = new List<Vector3d>();
+		List<Vector3> vertices = new List<Vector3>();
+		List<Vector3> normals = new List<Vector3>();
 		List<Face> faces = new List<Face>();
+
+		List<int> faceIndices = new List<int> ();
+
+		Vbo vbo;
 
 		public WavefrontModel (string filename)
 		{
@@ -35,34 +39,32 @@ namespace ObjLoader
 
 				switch (tokens [0]) {
 				case "v":
-					vertices.Add (new Vector3d() {
-						X = Convert.ToDouble (tokens [1]),
-						Y = Convert.ToDouble (tokens [2]),
-						Z = Convert.ToDouble (tokens [3])
-					});
+					vertices.Add (new Vector3(Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
 					break;
 				case "vn":
-					normals.Add (new Vector3d () {
-						X = Convert.ToDouble (tokens [1]),
-						Y = Convert.ToDouble (tokens [2]),
-						Z = Convert.ToDouble (tokens [3])
-					});
+					normals.Add (new Vector3(Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
 					break;
 				case "f":
 					string[] point0 = tokens [1].Split ('/');
 					string[] point1 = tokens [2].Split ('/');
 					string[] point2 = tokens [3].Split ('/');
 
-					faces.Add (new Face () {
-						v1 = Convert.ToInt32(point0[0]) - 1,
-						vn1 = Convert.ToInt32(point0[2]) - 1,
+					Face face = new Face () {
+						v1 = Convert.ToInt32 (point0 [0]) - 1,
+						vn1 = Convert.ToInt32 (point0 [2]) - 1,
 
-						v2 = Convert.ToInt32(point1[0]) - 1,
-						vn2 = Convert.ToInt32(point1[2]) - 1,
+						v2 = Convert.ToInt32 (point1 [0]) - 1,
+						vn2 = Convert.ToInt32 (point1 [2]) - 1,
 
-						v3 = Convert.ToInt32(point2[0]) - 1,
-						vn3 = Convert.ToInt32(point2[2]) - 1
-					});
+						v3 = Convert.ToInt32 (point2 [0]) - 1,
+						vn3 = Convert.ToInt32 (point2 [2]) - 1
+					};
+
+					faces.Add (face);
+
+					faceIndices.Add (face.v1);
+					faceIndices.Add (face.v2);
+					faceIndices.Add (face.v3);
 
 					break;
 				default:
@@ -75,12 +77,23 @@ namespace ObjLoader
 			Console.WriteLine ("Number of normals: " + normals.Count);
 			Console.WriteLine ("Number of faces: " + faces.Count);
 
+			loadVbo ();
+
 			return 0;
+		}
+
+		private void loadVbo() {
+			vbo = new Vbo ();
+
+			vbo.loadVertexData (ref vertices);
+			vbo.loadIndexData (ref faceIndices);
 		}
 
 		public void draw() 
 		{
-			GL.Begin (PrimitiveType.Triangles);
+			vbo.draw ();
+
+			/*GL.Begin (PrimitiveType.Triangles);
 
 			foreach (Face face in faces) {
 				GL.Normal3(normals[face.vn1].X, normals[face.vn1].Y, normals[face.vn1].Z);
@@ -93,7 +106,7 @@ namespace ObjLoader
 				GL.Vertex3(vertices[face.v3].X, vertices[face.v3].Y, vertices[face.v3].Z);
 			}
 				
-			GL.End();
+			GL.End();*/
 		}
 	}
 }
