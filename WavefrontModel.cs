@@ -20,6 +20,8 @@ namespace ObjLoader
 
 		List<int> faceIndices = new List<int> ();
 
+		List<Vector3> interleaved = new List<Vector3> ();
+
 		Vbo vbo;
 
 		public WavefrontModel (string filename)
@@ -62,20 +64,17 @@ namespace ObjLoader
 
 					faces.Add (face);
 
+					faceIndices.Add (face.vn1);
+					faceIndices.Add (face.vn2);
+					faceIndices.Add (face.vn3);
+
 					faceIndices.Add (face.v1);
 					faceIndices.Add (face.v2);
 					faceIndices.Add (face.v3);
 
 					break;
-				default:
-					Console.WriteLine ("Parse info: " + line);
-					break;
 				}
 			}
-
-			Console.WriteLine ("Number of vertices: " + vertices.Count);
-			Console.WriteLine ("Number of normals: " + normals.Count);
-			Console.WriteLine ("Number of faces: " + faces.Count);
 
 			loadVbo ();
 
@@ -84,6 +83,17 @@ namespace ObjLoader
 
 		private void loadVbo() {
 			vbo = new Vbo ();
+
+			// Interleave vertex and normal data
+//			foreach (Face face in faces) {
+//				interleaved.Add (normals[face.vn1]);
+//				interleaved.Add (normals[face.vn2]);
+//				interleaved.Add (normals[face.vn3]);
+//
+//				interleaved.Add (vertices[face.v1]);
+//				interleaved.Add (vertices[face.v2]);
+//				interleaved.Add (vertices[face.v3]);
+//			}
 
 			vbo.loadNormalData (ref normals);
 			vbo.loadVertexData (ref vertices);

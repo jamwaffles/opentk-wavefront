@@ -9,9 +9,34 @@ namespace ObjLoader
 	{
 		public int vertexBufferID;
 		public int normalBufferID;
+
+		public int interleavedBufferID;
 		public int elementBufferID;
 
 		int numElements;
+
+		public void loadInterleaved (ref List<Vector3> interleaved)
+		{
+			int bufferSize;
+
+			// Generate Array Buffer Id
+			GL.GenBuffers(1, out interleavedBufferID);
+
+			// Bind current context to Array Buffer ID
+			GL.BindBuffer(BufferTarget.ArrayBuffer, interleavedBufferID);
+
+			// Send data to buffer
+			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(interleaved.Count * Vector3.SizeInBytes), interleaved.ToArray(), BufferUsageHint.StaticDraw);
+
+			// Validate that the buffer is the correct size
+			GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out bufferSize);
+
+			if (interleaved.Count * Vector3.SizeInBytes != bufferSize)
+				throw new ApplicationException("Interleaved buffer data not uploaded properly");
+
+			// Clear the buffer Binding
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+		}
 
 		public void loadVertexData(ref List<Vector3> vertices)
 		{
@@ -93,7 +118,7 @@ namespace ObjLoader
 				GL.NormalPointer(NormalPointerType.Float, Vector3.SizeInBytes, IntPtr.Zero);
 
 				// Enable the client state so it will use this array buffer pointer
-				GL.EnableClientState(EnableCap.NormalArray);
+				GL.EnableClientState(ArrayCap.NormalArray);
 			}
 
 			// Vertex Array Buffer
@@ -115,6 +140,7 @@ namespace ObjLoader
 
 				// Draw the elements in the element array buffer
 				// Draws up items in the Color, Vertex, TexCoordinate, and Normal Buffers using indices in the ElementArrayBuffer
+				GL.InterleavedArrays (InterleavedArrayFormat.N3fV3f, 0, IntPtr.Zero);
 				GL.DrawElements(PrimitiveType.Triangles, numElements, DrawElementsType.UnsignedInt, IntPtr.Zero);
 
 				// Could also call GL.DrawArrays which would ignore the ElementArrayBuffer and just use primitives
