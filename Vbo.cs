@@ -8,9 +8,7 @@ namespace ObjLoader
 	public class Vbo
 	{
 		public int vertexBufferID;
-		// public int colorBufferID;
-		// public int texCoordBufferID;
-		// public int normalBufferID;
+		public int normalBufferID;
 		public int elementBufferID;
 
 		int numElements;
@@ -32,6 +30,29 @@ namespace ObjLoader
 			GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out bufferSize);
 
 			if (vertices.Count * Vector3.SizeInBytes != bufferSize)
+				throw new ApplicationException("Vertex array not uploaded correctly");
+
+			// Clear the buffer Binding
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+		}
+
+		public void loadNormalData(ref List<Vector3> normals)
+		{
+			int bufferSize;
+
+			// Generate Array Buffer Id
+			GL.GenBuffers(1, out normalBufferID);
+
+			// Bind current context to Array Buffer ID
+			GL.BindBuffer(BufferTarget.ArrayBuffer, normalBufferID);
+
+			// Send data to buffer
+			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(normals.Count * Vector3.SizeInBytes), normals.ToArray(), BufferUsageHint.StaticDraw);
+
+			// Validate that the buffer is the correct size
+			GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out bufferSize);
+
+			if (normals.Count * Vector3.SizeInBytes != bufferSize)
 				throw new ApplicationException("Vertex array not uploaded correctly");
 
 			// Clear the buffer Binding
@@ -63,6 +84,18 @@ namespace ObjLoader
 		}
 
 		public void draw() {
+			// Normal Array Buffer
+			{
+				// Bind to the Array Buffer ID
+				GL.BindBuffer(BufferTarget.ArrayBuffer, normalBufferID);
+
+				// Set the Pointer to the current bound array describing how the data ia stored
+				GL.NormalPointer(NormalPointerType.Float, Vector3.SizeInBytes, IntPtr.Zero);
+
+				// Enable the client state so it will use this array buffer pointer
+				GL.EnableClientState(EnableCap.NormalArray);
+			}
+
 			// Vertex Array Buffer
 			{
 				// Bind to the Array Buffer ID

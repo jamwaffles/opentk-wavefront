@@ -85,6 +85,7 @@ namespace ObjLoader
 		private void loadVbo() {
 			vbo = new Vbo ();
 
+			vbo.loadNormalData (ref normals);
 			vbo.loadVertexData (ref vertices);
 			vbo.loadIndexData (ref faceIndices);
 		}
@@ -92,21 +93,6 @@ namespace ObjLoader
 		public void draw() 
 		{
 			vbo.draw ();
-
-			/*GL.Begin (PrimitiveType.Triangles);
-
-			foreach (Face face in faces) {
-				GL.Normal3(normals[face.vn1].X, normals[face.vn1].Y, normals[face.vn1].Z);
-				GL.Vertex3(vertices[face.v1].X, vertices[face.v1].Y, vertices[face.v1].Z);
-
-				GL.Normal3(normals[face.vn2].X, normals[face.vn2].Y, normals[face.vn2].Z);
-				GL.Vertex3(vertices[face.v2].X, vertices[face.v2].Y, vertices[face.v2].Z);
-
-				GL.Normal3(normals[face.vn3].X, normals[face.vn3].Y, normals[face.vn3].Z);
-				GL.Vertex3(vertices[face.v3].X, vertices[face.v3].Y, vertices[face.v3].Z);
-			}
-				
-			GL.End();*/
 		}
 	}
 }
