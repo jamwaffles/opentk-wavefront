@@ -29,7 +29,7 @@ namespace ObjLoader
 
 			testModel = new WavefrontModel ("./cube.obj");
 
-			/*GL.Light(LightName.Light0, LightParameter.Position, new float[] { 2.0f, 2.0f, -0.5f });
+			GL.Light(LightName.Light0, LightParameter.Position, new float[] { 2.0f, 2.0f, -0.5f });
 			GL.Light(LightName.Light0, LightParameter.Ambient, new float[] { 0.3f, 0.3f, 0.3f, 1.0f });
 			GL.Light(LightName.Light0, LightParameter.Diffuse, new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
 			GL.Light(LightName.Light0, LightParameter.Specular, new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
@@ -38,7 +38,7 @@ namespace ObjLoader
 			GL.LightModel(LightModelParameter.LightModelTwoSide, 1);
 			GL.LightModel(LightModelParameter.LightModelLocalViewer, 1);
 			GL.Enable(EnableCap.Lighting);
-			GL.Enable(EnableCap.Light0);*/
+			GL.Enable(EnableCap.Light0);
 
 			GL.ClearColor (Color.CornflowerBlue);
 
