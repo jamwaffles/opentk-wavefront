@@ -5,10 +5,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProjectGuid>{8BBB13A2-4C77-41B7-9DAE-11BFFEBE470C}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>opentkwavefront</RootNamespace>
+    <RootNamespace>ObjLoader</RootNamespace>
     <AssemblyName>opentk-wavefront</AssemblyName>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -44,6 +42,7 @@
     <Compile Include="App.cs" />
     <Compile Include="Vbo.cs" />
     <Compile Include="Vertex.cs" />
+    <Compile Include="Shader.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
