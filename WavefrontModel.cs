@@ -28,8 +28,14 @@ namespace ObjLoader
 		// Load and parse the .OBJ file
 		private int load(string filename) 
 		{
+			int numVertices = 0;
+			int numNormals = 0;
+			int numFaces = 0;
+
 			List<Vector3> verts = new List<Vector3>();
 			List<Vector3> norms = new List<Vector3>();
+
+			Console.Write ("Loading model '" + filename + "'... ");
 
 			// Load entire file into an array (maybe bad for memory?)
 			string[] lines = System.IO.File.ReadAllLines(filename);
@@ -40,10 +46,12 @@ namespace ObjLoader
 
 				switch (tokens [0]) {
 				case "v":
-					verts.Add (new Vector3(Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
+					verts.Add (new Vector3 (Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
+					numVertices++;
 					break;
 				case "vn":
-					norms.Add (new Vector3(Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
+					norms.Add (new Vector3 (Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
+					numNormals++;
 					break;
 				case "f":
 					string[] point0 = tokens [1].Split ('/');
@@ -61,19 +69,27 @@ namespace ObjLoader
 						vn3 = Convert.ToInt32 (point2 [2]) - 1
 					};
 
-					vertices.Add( new Vertex () { norm = norms[face.vn1], pos = verts[face.v1] });
-					vertices.Add( new Vertex () { norm = norms[face.vn2], pos = verts[face.v2] });
-					vertices.Add( new Vertex () { norm = norms[face.vn3], pos = verts[face.v3] });
+					vertices.Add (new Vertex () { norm = norms [face.vn1], pos = verts [face.v1] });
+					vertices.Add (new Vertex () { norm = norms [face.vn2], pos = verts [face.v2] });
+					vertices.Add (new Vertex () { norm = norms [face.vn3], pos = verts [face.v3] });
 
 					faces.Add (face.v1);
 					faces.Add (face.v2);
 					faces.Add (face.v3);
+
+					numFaces++;
 
 					break;
 				}
 			}
 
 			loadVbo ();
+
+			Console.Write ("done\n");
+
+			Console.WriteLine (numVertices);
+			Console.WriteLine (numNormals);
+			Console.WriteLine (numFaces);
 
 			return 0;
 		}

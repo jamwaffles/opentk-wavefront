@@ -28,7 +28,7 @@ namespace ObjLoader
 
 			Title = "Wavefront model loader test";
 
-			testModel = new WavefrontModel ("./cube.obj");
+			testModel = new WavefrontModel ("./suzanne.obj");
 
 			GL.Light(LightName.Light0, LightParameter.Position, new float[] { 2.0f, 2.0f, 1.0f });
 			GL.Light(LightName.Light0, LightParameter.Ambient, new float[] { 0.3f, 0.3f, 0.3f, 1.0f });
@@ -44,8 +44,8 @@ namespace ObjLoader
 			GL.ClearColor (Color.CornflowerBlue);
 
 			GL.Enable (EnableCap.CullFace);
-
-			GL.EnableClientState(ArrayCap.VertexArray);
+			GL.CullFace (CullFaceMode.Back);
+			GL.Enable (EnableCap.DepthTest);
 		}
 
 		protected override void OnRenderFrame (FrameEventArgs e)
