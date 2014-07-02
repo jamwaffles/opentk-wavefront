@@ -58,7 +58,7 @@ namespace ObjLoader
 			GL.MatrixMode(MatrixMode.Modelview);
 			GL.LoadMatrix(ref modelview);
 
-			GL.Rotate (angle, new Vector3d (0, 1, 0));
+			GL.Rotate (angle, new Vector3d (0.5, 1, 0));
 
 			testModel.draw ();
 

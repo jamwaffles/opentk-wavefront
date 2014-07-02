@@ -14,13 +14,9 @@ namespace ObjLoader
 
 	public class WavefrontModel
 	{
-		List<Vector3> vertices = new List<Vector3>();
-		List<Vector3> normals = new List<Vector3>();
-		List<Face> faces = new List<Face>();
+		List<int> faces = new List<int> ();
 
-		List<int> faceIndices = new List<int> ();
-
-		List<Vertex> points = new List<Vertex> ();
+		List<Vertex> vertices = new List<Vertex> ();
 
 		Vbo vbo;
 
@@ -32,6 +28,9 @@ namespace ObjLoader
 		// Load and parse the .OBJ file
 		private int load(string filename) 
 		{
+			List<Vector3> verts = new List<Vector3>();
+			List<Vector3> norms = new List<Vector3>();
+
 			// Load entire file into an array (maybe bad for memory?)
 			string[] lines = System.IO.File.ReadAllLines(filename);
 
@@ -41,10 +40,10 @@ namespace ObjLoader
 
 				switch (tokens [0]) {
 				case "v":
-					vertices.Add (new Vector3(Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
+					verts.Add (new Vector3(Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
 					break;
 				case "vn":
-					normals.Add (new Vector3(Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
+					norms.Add (new Vector3(Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
 					break;
 				case "f":
 					string[] point0 = tokens [1].Split ('/');
@@ -62,19 +61,13 @@ namespace ObjLoader
 						vn3 = Convert.ToInt32 (point2 [2]) - 1
 					};
 
-//					faces.Add (face);
+					vertices.Add( new Vertex () { norm = norms[face.vn1], pos = verts[face.v1] });
+					vertices.Add( new Vertex () { norm = norms[face.vn2], pos = verts[face.v2] });
+					vertices.Add( new Vertex () { norm = norms[face.vn3], pos = verts[face.v3] });
 
-					points.Add( new Vertex () { pos = vertices[face.v1], norm = normals[face.vn1] });
-					points.Add( new Vertex () { pos = vertices[face.v2], norm = normals[face.vn2] });
-					points.Add( new Vertex () { pos = vertices[face.v3], norm = normals[face.vn3] });
-
-					faceIndices.Add (face.vn1);
-					faceIndices.Add (face.vn2);
-					faceIndices.Add (face.vn3);
-
-					faceIndices.Add (face.v1);
-					faceIndices.Add (face.v2);
-					faceIndices.Add (face.v3);
+					faces.Add (face.v1);
+					faces.Add (face.v2);
+					faces.Add (face.v3);
 
 					break;
 				}
@@ -88,8 +81,8 @@ namespace ObjLoader
 		private void loadVbo() {
 			vbo = new Vbo ();
 
-			vbo.loadInterleaved (ref points);
-			vbo.loadIndexData (ref faceIndices);
+			vbo.loadInterleaved (ref vertices);
+			vbo.loadIndexData (ref faces);
 		}
 
 		public void draw() 

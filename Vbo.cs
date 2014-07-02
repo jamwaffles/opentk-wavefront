@@ -37,8 +37,6 @@ namespace ObjLoader
 
 			// Clear the buffer Binding
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-
-			numElements = interleaved.Count;
 		}
 
 		public void loadIndexData(ref List<int> data)
@@ -68,14 +66,13 @@ namespace ObjLoader
 		}
 
 		public void draw() {
-			GL.EnableClientState(ArrayCap.VertexArray);
 			GL.EnableClientState(ArrayCap.NormalArray);
+			GL.EnableClientState(ArrayCap.VertexArray);
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, interleavedBufferID);
-			GL.VertexPointer(3, VertexPointerType.Float, Vertex.Stride, new IntPtr(0));
 			GL.NormalPointer(NormalPointerType.Float, Vertex.Stride, new IntPtr(Vector3.SizeInBytes));
-			//GL.DrawArrays(PrimitiveType.Triangles, 0, numElements);
-			GL.DrawElements (PrimitiveType.Triangles, numElements, DrawElementsType.UnsignedInt, indices.ToArray());
+			GL.VertexPointer(3, VertexPointerType.Float, Vertex.Stride, new IntPtr(0));
+			GL.DrawArrays(PrimitiveType.Triangles, 0, numElements);
 		}
 	}
 }
