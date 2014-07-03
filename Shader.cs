@@ -1,5 +1,54 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
+using OpenTK.Graphics.OpenGL;
+
+namespace ObjLoader
+{
+	public class Shader
+	{
+		public int program { get; private set; }
+		private int vertexShader;
+		private int fragmentShader;
+
+		public Shader(string vertexShaderPath, string fragmentShaderPath)
+		{
+			// load and compile vertex shader
+			vertexShader = GL.CreateShader(ShaderType.VertexShader);
+			GL.ShaderSource(vertexShader, new StreamReader(vertexShaderPath).ReadToEnd());
+			GL.CompileShader(vertexShader);
+
+			// load and compile fragment shader
+			fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
+			GL.ShaderSource(fragmentShader, new StreamReader(fragmentShaderPath).ReadToEnd());
+			GL.CompileShader(fragmentShader);
+
+			// create shader program
+			program = GL.CreateProgram();
+			GL.AttachShader(program, vertexShader);
+			GL.AttachShader(program, fragmentShader);
+			GL.LinkProgram(program);
+
+			// check for errors
+			string log;
+			GL.GetProgramInfoLog(program, out log);
+			Console.WriteLine(log);
+		}
+
+		public void use()
+		{
+			GL.UseProgram(program);
+		}
+
+		public int getUniform(string uniform)
+		{
+			return GL.GetUniformLocation(program, uniform);
+		}
+	}
+}
+
+/*using System;
+using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using OpenTK;
@@ -26,11 +75,11 @@ namespace ObjLoader
 
 	public class Shader
 	{
-		public int ProgramID = -1;
-		public int VShaderID = -1;
-		public int FShaderID = -1;
-		public int AttributeCount = 0;
-		public int UniformCount = 0;
+		int programId = -1;
+		int vertexShaderId = -1;
+		int fragmentShaderId = -1;
+		public int attributeCount = 0;
+		public int uniformCount = 0;
 
 		public Dictionary<String, AttributeInfo> Attributes = new Dictionary<string, AttributeInfo>();
 		public Dictionary<String, UniformInfo> Uniforms = new Dictionary<string, UniformInfo>();
@@ -38,26 +87,18 @@ namespace ObjLoader
 
 		public Shader ()
 		{
-			ProgramID = GL.CreateProgram();
+			programId = GL.CreateProgram();
 		}
 
-		public Shader (String vshader, String fshader, bool fromFile = false)
+		public Shader (String vshader, String fshader)
 		{
-			ProgramID = GL.CreateProgram();
+			programId = GL.CreateProgram();
 
-			if (fromFile)
-			{
-				LoadShaderFromFile(vshader, ShaderType.VertexShader);
-				LoadShaderFromFile(fshader, ShaderType.FragmentShader);
-			}
-			else
-			{
-				LoadShaderFromString(vshader, ShaderType.VertexShader);
-				LoadShaderFromString(fshader, ShaderType.FragmentShader);
-			}
+			loadShaderFromFile(vshader, ShaderType.VertexShader);
+			loadShaderFromFile(fshader, ShaderType.FragmentShader);
 
-			Link();
-			GenBuffers();
+			link();
+			genBuffers();
 		}
 
 		private void loadShader(String code, ShaderType type, out int address)
@@ -65,76 +106,64 @@ namespace ObjLoader
 			address = GL.CreateShader(type);
 			GL.ShaderSource(address, code);
 			GL.CompileShader(address);
-			GL.AttachShader(ProgramID, address);
+			GL.AttachShader(programId, address);
 			Console.WriteLine(GL.GetShaderInfoLog(address));
 		}
 
-		public void LoadShaderFromString(String code, ShaderType type)
-		{
-			if (type == ShaderType.VertexShader)
-			{
-				loadShader(code, type, out VShaderID);
-			}
-			else if (type == ShaderType.FragmentShader)
-			{
-				loadShader(code, type, out FShaderID);
-			}
-		}
-
-		public void LoadShaderFromFile(String filename, ShaderType type)
+		public void loadShaderFromFile(String filename, ShaderType type)
 		{
 			using (StreamReader sr = new StreamReader(filename))
 			{
 				if (type == ShaderType.VertexShader)
 				{
-					loadShader(sr.ReadToEnd(), type, out VShaderID);
+					loadShader(sr.ReadToEnd(), type, out vertexShaderId);
 				}
 				else if (type == ShaderType.FragmentShader)
 				{
-					loadShader(sr.ReadToEnd(), type, out FShaderID);
+					loadShader(sr.ReadToEnd(), type, out fragmentShaderId);
 				}
 			}
 		}
 
-		public void Link()
+		public void link()
 		{
-			GL.LinkProgram(ProgramID);
+			GL.LinkProgram(programId);
 
-			Console.WriteLine(GL.GetProgramInfoLog(ProgramID));
+			Console.WriteLine(GL.GetProgramInfoLog(programId));
 
-			GL.GetProgram(ProgramID, GetProgramParameterName.ActiveAttributes, out AttributeCount);
-			GL.GetProgram(ProgramID, GetProgramParameterName.ActiveUniforms, out UniformCount);
+			GL.GetProgram(programId, GetProgramParameterName.ActiveAttributes, out attributeCount);
+			GL.GetProgram(programId, GetProgramParameterName.ActiveUniforms, out uniformCount);
 
-			for (int i = 0; i < AttributeCount; i++)
+			for (int i = 0; i < attributeCount; i++)
 			{
 				AttributeInfo info = new AttributeInfo();
 				int length = 0;
 
 				StringBuilder name = new StringBuilder();
 
-				GL.GetActiveAttrib(ProgramID, i, 256, out length, out info.size, out info.type, name);
+				GL.GetActiveAttrib(programId, i, 256, out length, out info.size, out info.type, name);
 
 				info.name = name.ToString();
-				info.address = GL.GetAttribLocation(ProgramID, info.name);
+				info.address = GL.GetAttribLocation(programId, info.name);
 				Attributes.Add(name.ToString(), info);
 			}
 
-			for (int i = 0; i < UniformCount; i++)
+			for (int i = 0; i < uniformCount; i++)
 			{
 				UniformInfo info = new UniformInfo();
 				int length = 0;
 
 				StringBuilder name = new StringBuilder();
 
-				GL.GetActiveUniform(ProgramID, i, 256, out length, out info.size, out info.type, name);
+				GL.GetActiveUniform(programId, i, 256, out length, out info.size, out info.type, name);
 
 				info.name = name.ToString();
 				Uniforms.Add(name.ToString(), info);
-				info.address = GL.GetUniformLocation(ProgramID, info.name);
+				info.address = GL.GetUniformLocation(programId, info.name);
 			}
 		}
 
-		public void GenBuffers()
+		public void genBuffers()
 		{
 			for (int i = 0; i < Attributes.Count; i++)
 			{
@@ -153,7 +182,7 @@ namespace ObjLoader
 			}
 		}
 
-		public void EnableVertexAttribArrays()
+		public void enableVertexAttribArrays()
 		{
 			for (int i = 0; i < Attributes.Count; i++)
 			{
@@ -161,7 +190,7 @@ namespace ObjLoader
 			}
 		}
 
-		public void DisableVertexAttribArrays()
+		public void disableVertexAttribArrays()
 		{
 			for (int i = 0; i < Attributes.Count; i++)
 			{
@@ -169,7 +198,7 @@ namespace ObjLoader
 			}
 		}
 
-		public int GetAttribute(string name)
+		public int getAttribute(string name)
 		{
 			if (Attributes.ContainsKey(name))
 			{
@@ -181,7 +210,7 @@ namespace ObjLoader
 			}
 		}
 
-		public int GetUniform(string name)
+		public int getUniform(string name)
 		{
 			if (Uniforms.ContainsKey(name))
 			{
@@ -193,7 +222,7 @@ namespace ObjLoader
 			}
 		}
 
-		public uint GetBuffer(string name)
+		public uint getBuffer(string name)
 		{
 			if (Buffers.ContainsKey(name))
 			{
@@ -207,3 +236,4 @@ namespace ObjLoader
 	}
 }
 
+*/

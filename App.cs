@@ -10,7 +10,18 @@ namespace ObjLoader
 	public class App: GameWindow
 	{
 		WavefrontModel testModel;
-		double angle = 0;
+
+		float angle;
+
+		Matrix4 matProjection;
+		Matrix4 matView;
+		Matrix4 matWorld;
+		int uniformProjection;
+		int uniformView;
+		int uniformWorld;
+		int uniformNormalTransform;
+
+		Shader defaultShader;
 
 		public App(): base(800, 600, new OpenTK.Graphics.GraphicsMode(32, 16, 0, 4))
 		{
@@ -30,22 +41,17 @@ namespace ObjLoader
 
 			testModel = new WavefrontModel ("./suzanne.obj");
 
-			GL.Light(LightName.Light0, LightParameter.Position, new float[] { 2.0f, 2.0f, 1.0f });
-			GL.Light(LightName.Light0, LightParameter.Ambient, new float[] { 0.3f, 0.3f, 0.3f, 1.0f });
-			GL.Light(LightName.Light0, LightParameter.Diffuse, new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
-			GL.Light(LightName.Light0, LightParameter.Specular, new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
-			GL.Light(LightName.Light0, LightParameter.SpotExponent, new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
-			GL.LightModel(LightModelParameter.LightModelAmbient, new float[] { 0.2f, 0.2f, 0.2f, 1.0f });
-			GL.LightModel(LightModelParameter.LightModelTwoSide, 1);
-			GL.LightModel(LightModelParameter.LightModelLocalViewer, 1);
-			GL.Enable(EnableCap.Lighting);
-			GL.Enable(EnableCap.Light0);
+			defaultShader = new Shader("default.vert", "default.frag");
+			uniformProjection = defaultShader.getUniform("mat_projection");
+			uniformView = defaultShader.getUniform("mat_view");
+			uniformWorld = defaultShader.getUniform("mat_world");
+			uniformNormalTransform = defaultShader.getUniform("mat_normalTransform");
 
 			GL.ClearColor (Color.CornflowerBlue);
 
+			GL.Enable (EnableCap.DepthTest);
 			GL.Enable (EnableCap.CullFace);
 			GL.CullFace (CullFaceMode.Back);
-			GL.Enable (EnableCap.DepthTest);
 		}
 
 		protected override void OnRenderFrame (FrameEventArgs e)
@@ -60,6 +66,25 @@ namespace ObjLoader
 //
 //			GL.Rotate (angle, new Vector3d (0.5, 1, 0));
 
+			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+			Vector3 eye = new Vector3(0.0f, 0.0f, -1.0f);
+			Vector3 target = Vector3.Zero;
+			Vector3 up = new Vector3(0.0f, 1.0f, 0.0f);
+			matView = Matrix4.LookAt(eye, target, up);
+
+			matWorld = Matrix4.CreateRotationY(angle);
+
+			Matrix4 matNormalTransform;
+			Matrix4.Mult(ref matProjection, ref matView, out matNormalTransform);
+			Matrix4.Mult(ref matNormalTransform, ref matWorld, out matNormalTransform);
+			matNormalTransform.Invert();
+
+			GL.UniformMatrix4(uniformProjection, false, ref matProjection);
+			GL.UniformMatrix4(uniformView, false, ref matView);
+			GL.UniformMatrix4(uniformWorld, false, ref matWorld);
+			GL.UniformMatrix4(uniformNormalTransform, true, ref matNormalTransform);
+
 			testModel.draw ();
 
 			SwapBuffers ();
@@ -69,7 +94,7 @@ namespace ObjLoader
 		{
 			base.OnUpdateFrame (e);
 
-			angle += 0.5;
+			angle += 0.5f;
 		}
 
 		protected override void OnResize(EventArgs e)
@@ -77,9 +102,8 @@ namespace ObjLoader
 			base.OnResize(e);
 
 			GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
-			Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, Width / (float)Height, 1.0f, 64.0f);
-			GL.MatrixMode(MatrixMode.Projection);
-			GL.LoadMatrix(ref projection);
+
+			matProjection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, Width / (float)Height, 0.1f, 100.0f);
 		}
 	}
 }
