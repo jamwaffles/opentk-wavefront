@@ -3,9 +3,17 @@ using System.Drawing;
 using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using System.Runtime.InteropServices;
 
 namespace ObjLoader
 {
+	public struct Vertex
+	{
+		public Vector3 pos, norm;
+
+		public static readonly int Stride = Marshal.SizeOf(default(Vertex));
+	}
+
 	struct Face 
 	{
 		public int v1, v2, v3;

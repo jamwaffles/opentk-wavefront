@@ -7,6 +7,8 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>ObjLoader</RootNamespace>
     <AssemblyName>opentk-wavefront</AssemblyName>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,7 +43,6 @@
     <Compile Include="WavefrontModel.cs" />
     <Compile Include="App.cs" />
     <Compile Include="Vbo.cs" />
-    <Compile Include="Vertex.cs" />
     <Compile Include="Shader.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
