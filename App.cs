@@ -23,7 +23,16 @@ namespace ObjLoader
 
 		Shader defaultShader;
 
-		public App(): base(800, 600, new OpenTK.Graphics.GraphicsMode(32, 16, 0, 4))
+		public App(): base(
+			800, 
+			600, 
+			new OpenTK.Graphics.GraphicsMode(32, 16, 0, 4), 
+			"Obj Loader", 
+			GameWindowFlags.Default, 
+			DisplayDevice.Default, 
+			3,		// Major version
+			3,		// Minor version
+			OpenTK.Graphics.GraphicsContextFlags.Default | OpenTK.Graphics.GraphicsContextFlags.Debug)
 		{
 			Keyboard.KeyDown += HandleKeyDown;
 		}
@@ -40,8 +49,6 @@ namespace ObjLoader
 			GL.ClearDepth(0.0f);
 			GL.ClearColor(0.1f, 0.2f, 0.5f, 0.0f);
 			GL.Enable(EnableCap.DepthTest);
-
-			Title = "Wavefront model loader test";
 
 			testModel = new WavefrontModel ("./suzanne.obj");
 

@@ -1,11 +1,11 @@
-﻿#version 330
+﻿#version 330 core
 
 uniform mat4 mat_projection;
 uniform mat4 mat_view;
 uniform mat4 mat_world;
-uniform mat4 mat_normalTransform
+uniform mat4 mat_normalTransform;
 
-in vec4 in_position;
+in vec3 in_position;
 in vec3 in_normal;
 
 out vec3 normal;
