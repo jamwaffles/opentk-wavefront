@@ -54,11 +54,11 @@ namespace ObjLoader
 
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 	
-			Matrix4 modelview = Matrix4.LookAt(0f, 0f, 5f, 0f, 0f, 0f, 0f, 1f, 0f);
-			GL.MatrixMode(MatrixMode.Modelview);
-			GL.LoadMatrix(ref modelview);
-
-			GL.Rotate (angle, new Vector3d (0.5, 1, 0));
+//			Matrix4 modelview = Matrix4.LookAt(0f, 0f, 5f, 0f, 0f, 0f, 0f, 1f, 0f);
+//			GL.MatrixMode(MatrixMode.Modelview);
+//			GL.LoadMatrix(ref modelview);
+//
+//			GL.Rotate (angle, new Vector3d (0.5, 1, 0));
 
 			testModel.draw ();
 

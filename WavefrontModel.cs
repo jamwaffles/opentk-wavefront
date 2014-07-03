@@ -22,11 +22,19 @@ namespace ObjLoader
 
 	public class WavefrontModel
 	{
-		List<int> faces = new List<int> ();
+		List<int> indices = new List<int> ();
 
-		List<Vertex> vertices = new List<Vertex> ();
+		List<Vector3> vertices = new List<Vector3> ();
+		List<Vector3> normals = new List<Vector3> ();
 
-		Vbo vbo;
+		List<Vertex> modelData = new List<Vertex> ();
+
+		int iboId;
+//		int normalBufferId;
+		int vaoId;
+		int vboId;
+
+//		Vbo vbo;
 
 		public WavefrontModel (string filename)
 		{
@@ -40,9 +48,6 @@ namespace ObjLoader
 			int numNormals = 0;
 			int numFaces = 0;
 
-			List<Vector3> verts = new List<Vector3>();
-			List<Vector3> norms = new List<Vector3>();
-
 			Console.Write ("Loading model '" + filename + "'... ");
 
 			// Load entire file into an array (maybe bad for memory?)
@@ -54,11 +59,11 @@ namespace ObjLoader
 
 				switch (tokens [0]) {
 				case "v":
-					verts.Add (new Vector3 (Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
+					vertices.Add (new Vector3 (Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
 					numVertices++;
 					break;
 				case "vn":
-					norms.Add (new Vector3 (Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
+					normals.Add (new Vector3 (Convert.ToSingle (tokens [1]), Convert.ToSingle (tokens [2]), Convert.ToSingle (tokens [3])));
 					numNormals++;
 					break;
 				case "f":
@@ -77,15 +82,15 @@ namespace ObjLoader
 						vn3 = Convert.ToInt32 (point2 [2]) - 1
 					};
 
-					vertices.Add (new Vertex () { norm = norms [face.vn1], pos = verts [face.v1] });
-					vertices.Add (new Vertex () { norm = norms [face.vn2], pos = verts [face.v2] });
-					vertices.Add (new Vertex () { norm = norms [face.vn3], pos = verts [face.v3] });
+					modelData.Add (new Vertex () { norm = normals [face.vn1], pos = vertices [face.v1] });
+					modelData.Add (new Vertex () { norm = normals [face.vn2], pos = vertices [face.v2] });
+					modelData.Add (new Vertex () { norm = normals [face.vn3], pos = vertices [face.v3] });
 
-					faces.Add (face.v1);
-					faces.Add (face.v2);
-					faces.Add (face.v3);
+					indices.Add (face.v1);
+					indices.Add (face.v2);
+					indices.Add (face.v3);
 
-					numFaces++;
+					numFaces += 3;
 
 					break;
 				}
@@ -103,15 +108,59 @@ namespace ObjLoader
 		}
 
 		private void loadVbo() {
-			vbo = new Vbo ();
+//			vbo = new Vbo ();
+//
+//			vbo.loadInterleaved (ref vertices);
+//			vbo.loadIndexData (ref faces);
 
-			vbo.loadInterleaved (ref vertices);
-			vbo.loadIndexData (ref faces);
+			// Vertex index data
+			GL.GenBuffers (1, out iboId);
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, iboId);
+			GL.BufferData (BufferTarget.ElementArrayBuffer, (IntPtr)(sizeof(int) * indices.Count), indices.ToArray (), BufferUsageHint.StaticDraw);
+
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, iboId);
+			Console.WriteLine (GL.GetError ());
+
+			// Vertex position data
+			GL.GenBuffers (1, out vboId);
+			GL.BindBuffer (BufferTarget.ArrayBuffer, vboId);
+			GL.BufferData (BufferTarget.ArrayBuffer, (IntPtr)(Vertex.Stride * modelData.Count), modelData.ToArray(), BufferUsageHint.StaticDraw);
+
+			GL.BindBuffer (BufferTarget.ArrayBuffer, vboId);
+			Console.WriteLine (GL.GetError ());
+
+			// VAO
+			GL.GenVertexArrays (1, out vaoId);
+			GL.BindVertexArray (vaoId);
+
+			GL.BindBuffer (BufferTarget.ArrayBuffer, vboId);
+			GL.VertexAttribPointer (0, 3, VertexAttribPointerType.Float, false, Vertex.Stride, IntPtr.Zero);
+			GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, Vertex.Stride, new IntPtr(Vector3.SizeInBytes));
+
+			GL.EnableVertexAttribArray (0);
+			GL.EnableVertexAttribArray (1);
+			GL.DisableVertexAttribArray (2);
+			GL.DisableVertexAttribArray (3);
+
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, iboId);
+
+			GL.BindVertexArray (0);
+			GL.EnableVertexAttribArray (0);
+			GL.EnableVertexAttribArray (1);
+			GL.EnableVertexAttribArray (2);
+			GL.EnableVertexAttribArray (3);
+
+			GL.BindBuffer (BufferTarget.ArrayBuffer, 0);
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, 0);
 		}
 
 		public void draw() 
 		{
-			vbo.draw ();
+			// vbo.draw ();
+
+			GL.BindVertexArray (vaoId);
+
+			GL.DrawRangeElements (PrimitiveType.Triangles, 0, indices.Count, indices.Count, DrawElementsType.UnsignedInt, IntPtr.Zero);
 		}
 	}
 }
