@@ -103,5 +103,16 @@ namespace ObjLoader
 			matProjection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, Width / (float)Height, 0.1f, 100.0f);
 		}
 	}
+
+	class ObjLoader
+	{
+		public static void Main (string[] args)
+		{
+			using (App app = new App())
+			{
+				app.Run(60.0);
+			}
+		}
+	}
 }
 
