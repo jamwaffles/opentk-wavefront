@@ -22,6 +22,8 @@ namespace ObjLoader
 
 	public class WavefrontModel
 	{
+		Shader shader;
+
 		List<int> indices = new List<int> ();
 
 		List<Vector3> vertices = new List<Vector3> ();
@@ -154,9 +156,17 @@ namespace ObjLoader
 			GL.BindBuffer (BufferTarget.ElementArrayBuffer, 0);
 		}
 
+		public void bindShader(Shader externalShader)
+		{
+			shader = externalShader;
+
+			GL.BindAttribLocation(shader.program, 0, "in_position");
+			GL.BindAttribLocation(shader.program, 1, "in_normal");
+		}
+
 		public void draw() 
 		{
-			// vbo.draw ();
+			shader.use ();
 
 			GL.BindVertexArray (vaoId);
 

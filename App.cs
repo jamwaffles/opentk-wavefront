@@ -37,6 +37,10 @@ namespace ObjLoader
 		{
 			base.OnLoad (e);
 
+			GL.ClearDepth(0.0f);
+			GL.ClearColor(0.1f, 0.2f, 0.5f, 0.0f);
+			GL.Enable(EnableCap.DepthTest);
+
 			Title = "Wavefront model loader test";
 
 			testModel = new WavefrontModel ("./suzanne.obj");
@@ -49,9 +53,9 @@ namespace ObjLoader
 
 			GL.ClearColor (Color.CornflowerBlue);
 
-			GL.Enable (EnableCap.DepthTest);
-			GL.Enable (EnableCap.CullFace);
-			GL.CullFace (CullFaceMode.Back);
+//			GL.Enable (EnableCap.DepthTest);
+//			GL.Enable (EnableCap.CullFace);
+//			GL.CullFace (CullFaceMode.Back);
 		}
 
 		protected override void OnRenderFrame (FrameEventArgs e)
@@ -59,16 +63,8 @@ namespace ObjLoader
 			base.OnRenderFrame (e);
 
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-	
-//			Matrix4 modelview = Matrix4.LookAt(0f, 0f, 5f, 0f, 0f, 0f, 0f, 1f, 0f);
-//			GL.MatrixMode(MatrixMode.Modelview);
-//			GL.LoadMatrix(ref modelview);
-//
-//			GL.Rotate (angle, new Vector3d (0.5, 1, 0));
 
-			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-			Vector3 eye = new Vector3(0.0f, 0.0f, -1.0f);
+			Vector3 eye = new Vector3(0.0f, 0.0f, -2.0f);
 			Vector3 target = Vector3.Zero;
 			Vector3 up = new Vector3(0.0f, 1.0f, 0.0f);
 			matView = Matrix4.LookAt(eye, target, up);
@@ -85,6 +81,7 @@ namespace ObjLoader
 			GL.UniformMatrix4(uniformWorld, false, ref matWorld);
 			GL.UniformMatrix4(uniformNormalTransform, true, ref matNormalTransform);
 
+			testModel.bindShader (defaultShader);
 			testModel.draw ();
 
 			SwapBuffers ();
@@ -94,7 +91,7 @@ namespace ObjLoader
 		{
 			base.OnUpdateFrame (e);
 
-			angle += 0.5f;
+			angle += (float)e.Time;
 		}
 
 		protected override void OnResize(EventArgs e)

@@ -1,17 +1,19 @@
 ﻿#version 330
 
-in vec3 InVertex;
-in vec3 InNormal;
+uniform mat4 mat_projection;
+uniform mat4 mat_view;
+uniform mat4 mat_world;
+uniform mat4 mat_normalTransform
 
-smooth out vec3 LightVector0;
-smooth out vec3 EyeNormal;
+in vec4 in_position;
+in vec3 in_normal;
 
-uniform mat4 ProjectionModelviewMatrix;
+out vec3 normal;
 
 void main()
 {
-	gl_Position = ProjectionModelviewMatrix * vec4(InVertex, 1.0);
-
-	LightVector0 = vec3(1.0, 1.0, 1.0);
-	EyeNormal = InNormal;
+	normal = (vec4(in_normal, 1.0f) * mat_normalTransform).xyz;
+	vec4 wPos = vec4(in_position, 1.0f) * mat_world;
+	vec4 vPos = wPos * mat_view;
+	vec4 gl_Position = vPos * mat_projection;
 }
