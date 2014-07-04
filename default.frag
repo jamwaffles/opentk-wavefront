@@ -1,8 +1,21 @@
 ﻿#version 330 core
-
-out vec4 out_color;
-
+ 
+smooth in vec3 LightVector0;
+smooth in vec3 EyeNormal;
+ 
+out vec4 FragColor;
+ 
+ 
 void main()
 {
-	out_color = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+        vec3 eyeNormal;
+        vec3 lightVector;
+        float dotProduct;
+ 
+        eyeNormal = normalize(EyeNormal);
+        lightVector = normalize(LightVector0);
+ 
+        dotProduct = dot(eyeNormal, lightVector);
+ 
+        FragColor = vec4(dotProduct);
 }

@@ -4,24 +4,25 @@ using System.Drawing;
 using OpenTK;
 using OpenTK.Input;
 using OpenTK.Graphics.OpenGL;
+using System.Collections.Generic;
 
 namespace ObjLoader
 {
+	public struct TestVertex {
+		public float x, y, z;
+		public float nx, ny, nz;
+	}
+
 	public class App: GameWindow
 	{
-		WavefrontModel testModel;
-
 		float angle;
 
-		Matrix4 matProjection;
-		Matrix4 matView;
-		Matrix4 matWorld;
-		int uniformProjection;
-		int uniformView;
-		int uniformWorld;
-		int uniformNormalTransform;
+		List<TestVertex> triangle = new List<TestVertex> ();
+		List<ushort> triangleIndex = new List<ushort> ();
 
-		Shader defaultShader;
+		uint vaoId, iboId, vboId;
+		int shaderProgramId, vertexShaderId, fragmentShaderId;
+		int uniformProjectionModelView;
 
 		public App(): base(
 			800, 
@@ -35,6 +36,37 @@ namespace ObjLoader
 			OpenTK.Graphics.GraphicsContextFlags.Default | OpenTK.Graphics.GraphicsContextFlags.Debug)
 		{
 			Keyboard.KeyDown += HandleKeyDown;
+
+			TestVertex v1, v2, v3;
+
+			v1.x=0.0f;
+			v1.y=0.5f;
+			v1.z=-1.0f;
+			v1.nx=0.0f;
+			v1.ny=0.0f;
+			v1.nz=1.0f;
+
+			v2.x=0.3f;
+			v2.y=-0.5f;
+			v2.z=-1.0f;
+			v2.nx=0.0f;
+			v2.ny=0.0f;
+			v2.nz=1.0f;
+
+			v3.x=0.8f;
+			v3.y=0.5f;
+			v3.z=-1.0f;
+			v3.nx=0.0f;
+			v3.ny=0.0f;
+			v3.nz=1.0f;
+
+			triangle.Add (v1);
+			triangle.Add (v2);
+			triangle.Add (v3);
+
+			triangleIndex.Add (0);
+			triangleIndex.Add (1);
+			triangleIndex.Add (2);
 		}
 
 		void HandleKeyDown (object sender, KeyboardKeyEventArgs e)
@@ -46,23 +78,62 @@ namespace ObjLoader
 		{
 			base.OnLoad (e);
 
-			GL.ClearDepth(0.0f);
-			GL.ClearColor(0.1f, 0.2f, 0.5f, 0.0f);
-			GL.Enable(EnableCap.DepthTest);
-
-			testModel = new WavefrontModel ("./suzanne.obj");
-
-			defaultShader = new Shader("default.vert", "default.frag");
-			uniformProjection = defaultShader.getUniform("mat_projection");
-			uniformView = defaultShader.getUniform("mat_view");
-			uniformWorld = defaultShader.getUniform("mat_world");
-			uniformNormalTransform = defaultShader.getUniform("mat_normalTransform");
+			GL.Enable (EnableCap.DepthTest);
+			GL.Enable (EnableCap.CullFace);
+			GL.CullFace (CullFaceMode.Back);
 
 			GL.ClearColor (Color.CornflowerBlue);
 
-//			GL.Enable (EnableCap.DepthTest);
-//			GL.Enable (EnableCap.CullFace);
-//			GL.CullFace (CullFaceMode.Back);
+			GL.GenBuffers (1, out iboId);
+			GL.BindBuffer (BufferTarget.ArrayBuffer, iboId);
+			GL.BufferData (BufferTarget.ElementArrayBuffer, (IntPtr)(sizeof(ushort) * triangleIndex.Count), triangleIndex.ToArray (), BufferUsageHint.StaticDraw);
+
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, 0);
+
+			GL.GenBuffers (1, out vboId);
+			GL.BindBuffer (BufferTarget.ArrayBuffer, vboId);
+			GL.BufferData (BufferTarget.ArrayBuffer, (IntPtr)(sizeof(float) * 6), triangle.ToArray (), BufferUsageHint.StaticDraw);
+
+			// VAO
+			GL.GenVertexArrays (1, out vaoId);
+			GL.BindVertexArray (vaoId);
+
+			GL.BindBuffer (BufferTarget.ArrayBuffer, vboId);
+			GL.VertexAttribPointer (0, 3, VertexAttribPointerType.Float, false, (sizeof(float) * 6), IntPtr.Zero);
+			GL.VertexAttribPointer (1, 3, VertexAttribPointerType.Float, false, (sizeof(float) * 6), (IntPtr)(sizeof(float) * 3));
+
+			GL.EnableVertexAttribArray (0);
+			GL.EnableVertexAttribArray (0);
+
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, iboId);
+
+			GL.BindVertexArray (0);
+			GL.DisableVertexAttribArray (0);
+			GL.DisableVertexAttribArray (1);
+			GL.BindBuffer (BufferTarget.ArrayBuffer, 0);
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, 0);
+
+			// Load shaders
+			vertexShaderId = GL.CreateShader(ShaderType.VertexShader);
+			GL.ShaderSource(vertexShaderId, new StreamReader("default.vert").ReadToEnd());
+			GL.CompileShader(vertexShaderId);
+
+			fragmentShaderId = GL.CreateShader(ShaderType.FragmentShader);
+			GL.ShaderSource(fragmentShaderId, new StreamReader("default.frag").ReadToEnd());
+			GL.CompileShader(fragmentShaderId);
+
+			shaderProgramId = GL.CreateProgram ();
+			GL.AttachShader (shaderProgramId, vertexShaderId);
+			GL.AttachShader (shaderProgramId, fragmentShaderId);
+
+			GL.BindAttribLocation (shaderProgramId, 0, "InVertex");
+			GL.BindAttribLocation (shaderProgramId, 1, "InNormal");
+
+			GL.LinkProgram (shaderProgramId);
+
+			Console.WriteLine (GL.GetProgramInfoLog (shaderProgramId));
+
+			uniformProjectionModelView = GL.GetUniformLocation (shaderProgramId, "ProjectionModelviewMatrix");
 		}
 
 		protected override void OnRenderFrame (FrameEventArgs e)
@@ -71,43 +142,31 @@ namespace ObjLoader
 
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-			Vector3 eye = new Vector3(0.0f, 0.0f, -2.0f);
-			Vector3 target = Vector3.Zero;
-			Vector3 up = new Vector3(0.0f, 1.0f, 0.0f);
-			matView = Matrix4.LookAt(eye, target, up);
+			GL.EnableClientState (ArrayCap.VertexArray);
 
-			matWorld = Matrix4.CreateRotationY(angle);
+			Matrix4 projectionModelView = new Matrix4 (
+				                              new Vector4 (1, 0, 0, 0),
+				                              new Vector4 (0, 1, 0, 0),
+				                              new Vector4 (0, 0, 1, 0),
+				                              new Vector4 (0, 0, 0, 1)
+			                              );
 
-			Matrix4 matNormalTransform;
-			Matrix4.Mult(ref matProjection, ref matView, out matNormalTransform);
-			Matrix4.Mult(ref matNormalTransform, ref matWorld, out matNormalTransform);
-			matNormalTransform.Invert();
+			GL.UseProgram (shaderProgramId);
 
-			GL.UniformMatrix4(uniformProjection, false, ref matProjection);
-			GL.UniformMatrix4(uniformView, false, ref matView);
-			GL.UniformMatrix4(uniformWorld, false, ref matWorld);
-			GL.UniformMatrix4(uniformNormalTransform, true, ref matNormalTransform);
+			GL.UniformMatrix4(uniformProjectionModelView, false, ref projectionModelView);
 
-			testModel.bindShader (defaultShader);
-			testModel.draw ();
+			GL.BindVertexArray (vaoId);
+
+			GL.DrawRangeElements (PrimitiveType.Triangles, 0, triangle.Count, triangleIndex.Count, DrawElementsType.UnsignedShort, triangleIndex.ToArray ());
 
 			SwapBuffers ();
 		}
-
-		protected override void OnUpdateFrame (FrameEventArgs e)
-		{
-			base.OnUpdateFrame (e);
-
-			angle += (float)e.Time;
-		}
-
+			
 		protected override void OnResize(EventArgs e)
 		{
 			base.OnResize(e);
 
 			GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
-
-			matProjection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, Width / (float)Height, 0.1f, 100.0f);
 		}
 	}
 
