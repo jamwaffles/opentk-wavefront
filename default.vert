@@ -15,5 +15,5 @@ void main()
 	normal = (vec4(in_normal, 1.0f) * mat_normalTransform).xyz;
 	vec4 wPos = vec4(in_position, 1.0f) * mat_world;
 	vec4 vPos = wPos * mat_view;
-	vec4 gl_Position = vPos * mat_projection;
+	gl_Position = vPos * mat_projection;
 }
