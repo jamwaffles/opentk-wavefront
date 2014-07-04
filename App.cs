@@ -10,13 +10,14 @@ namespace ObjLoader {
 		string vertexShaderSource = @"
 #version 330
  
-layout (location = 0) in vec3 Position;
+layout (location = 0) in vec3 in_position;
+
+uniform mat4 projection_matrix;
+uniform mat4 modelview_matrix;
  
 void main()
 {
-	gl_Position = vec4(0.5 * Position.x,
-	                   0.5 * Position.y,
-	                   Position.z, 1.0);
+	gl_Position = projection_matrix * modelview_matrix * vec4(in_position, 1);
 }";
 
 		string fragmentShaderSource = @"
@@ -29,9 +30,36 @@ void main()
 	FragColor = vec4(0.5, 0.8, 1.0, 1.0);
 }";
 
+		Vector3[] positionData = new Vector3[]{
+			new Vector3(-1.0f, -1.0f,  1.0f),
+			new Vector3( 1.0f, -1.0f,  1.0f),
+			new Vector3( 1.0f,  1.0f,  1.0f),
+			new Vector3(-1.0f,  1.0f,  1.0f),
+			new Vector3(-1.0f, -1.0f, -1.0f),
+			new Vector3( 1.0f, -1.0f, -1.0f), 
+			new Vector3( 1.0f,  1.0f, -1.0f),
+			new Vector3(-1.0f,  1.0f, -1.0f) };
 
-		int vbo, 
-		shaderProgramHandle, vertexShaderHandle, fragmentShaderHandle;
+		int[] indexData = new int[]{
+			// front face
+			0, 1, 2, 2, 3, 0,
+			// top face
+			3, 2, 6, 6, 7, 3,
+			// back face
+			7, 6, 5, 5, 4, 7,
+			// left face
+			4, 0, 3, 3, 7, 4,
+			// bottom face
+			0, 1, 5, 5, 4, 0,
+			// right face
+			1, 5, 6, 6, 2, 1, };
+
+		int shaderProgramHandle, vertexShaderHandle, fragmentShaderHandle;
+		int posVbo, indexVbo;
+		int vaoId;
+
+		int modelviewMatrixLoc, projectionMatrixLoc;
+		Matrix4 modelviewMatrix, projectionMatrix;
 
 		public ObjLoaderApp(): base(
 			800, 
@@ -54,16 +82,29 @@ void main()
 
 		void CreateVertexBuffer()
 		{
-			Vector3[] vertices = new Vector3[3];
-			vertices[0] = new Vector3(-1f, -1f, 0f);
-			vertices[1] = new Vector3( 1f, -1f, 0f);
-			vertices[2] = new Vector3( 0f,  1f, 0f);
+			// VBOs
+			GL.GenBuffers (1, out posVbo);
+			GL.BindBuffer (BufferTarget.ArrayBuffer, posVbo);
+			GL.BufferData<Vector3> (BufferTarget.ArrayBuffer, new IntPtr (positionData.Length * Vector3.SizeInBytes), positionData, BufferUsageHint.StaticDraw);
 
-			GL.GenBuffers(1, out vbo);
-			GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-			GL.BufferData<Vector3>(BufferTarget.ArrayBuffer,
-				new IntPtr(vertices.Length * Vector3.SizeInBytes),
-				vertices, BufferUsageHint.StaticDraw);
+			GL.GenBuffers (1, out indexVbo);
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, indexVbo);
+			GL.BufferData (BufferTarget.ElementArrayBuffer, new IntPtr (indexData.Length * sizeof(int)), indexData, BufferUsageHint.StaticDraw);
+
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+
+			// VAO
+			GL.GenVertexArrays (1, out vaoId);
+			GL.BindVertexArray (vaoId);
+
+			GL.EnableVertexAttribArray (0);
+			GL.BindBuffer (BufferTarget.ArrayBuffer, posVbo);
+			GL.VertexAttribPointer (0, 3, VertexAttribPointerType.Float, true, Vector3.SizeInBytes, 0);
+			GL.BindAttribLocation (shaderProgramHandle, 0, "in_position");
+
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, indexVbo);
+			GL.BindVertexArray (0);
 		}
 
 		void CreateShaders()
@@ -86,6 +127,17 @@ void main()
 			GL.LinkProgram(shaderProgramHandle);
 			Console.WriteLine(GL.GetProgramInfoLog(shaderProgramHandle));
 			GL.UseProgram(shaderProgramHandle);
+
+			// Set uniforms
+			projectionMatrixLoc = GL.GetUniformLocation(shaderProgramHandle, "projection_matrix");
+			modelviewMatrixLoc = GL.GetUniformLocation(shaderProgramHandle, "modelview_matrix");
+
+			float aspectRatio = ClientSize.Width / (float)(ClientSize.Height);
+			Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, aspectRatio, 1, 100, out projectionMatrix);
+			modelviewMatrix = Matrix4.LookAt(new Vector3(0, 3, 5), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
+			GL.UniformMatrix4(projectionMatrixLoc, false, ref projectionMatrix);
+			GL.UniformMatrix4(modelviewMatrixLoc, false, ref modelviewMatrix);
 		}
 
 		protected override void OnLoad (EventArgs e)
@@ -104,15 +156,19 @@ void main()
 
 			GL.Clear (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
-			GL.EnableVertexAttribArray(0);
-			GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-			GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, 0);
-
-			GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
-
-			GL.DisableVertexAttribArray(0);
+			GL.BindVertexArray (vaoId);
+			GL.DrawElements (PrimitiveType.Triangles, indexData.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
 
 			SwapBuffers ();
+		}
+
+		protected override void OnUpdateFrame (FrameEventArgs e)
+		{
+			base.OnUpdateFrame (e);
+
+			Matrix4 rotation = Matrix4.CreateRotationY((float)e.Time);
+			Matrix4.Mult(ref rotation, ref modelviewMatrix, out modelviewMatrix);
+			GL.UniformMatrix4(modelviewMatrixLoc, false, ref modelviewMatrix);
 		}
 
 		protected override void OnResize(EventArgs e)
