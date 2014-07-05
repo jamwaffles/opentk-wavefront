@@ -127,7 +127,7 @@ namespace ObjLoader {
 		};
 			
 		Shader shader;
-		int posVbo, indexVbo, colourVbo;
+		int posVbo, indexVbo, colourVbo, normalVbo;
 		int vaoId;
 
 		int modelviewMatrixLoc, projectionMatrixLoc;
@@ -165,6 +165,10 @@ namespace ObjLoader {
 			GL.BindBuffer (BufferTarget.ArrayBuffer, colourVbo);
 			GL.BufferData<Vector3> (BufferTarget.ArrayBuffer, new IntPtr (colourData.Length * Vector3.SizeInBytes), colourData, BufferUsageHint.StaticDraw);
 
+			GL.GenBuffers (1, out normalVbo);
+			GL.BindBuffer (BufferTarget.ArrayBuffer, normalVbo);
+			GL.BufferData<Vector3> (BufferTarget.ArrayBuffer, new IntPtr (normalData.Length * Vector3.SizeInBytes), normalData, BufferUsageHint.StaticDraw);
+
 			GL.GenBuffers (1, out indexVbo);
 			GL.BindBuffer (BufferTarget.ElementArrayBuffer, indexVbo);
 			GL.BufferData (BufferTarget.ElementArrayBuffer, new IntPtr (indexData.Length * sizeof(int)), indexData, BufferUsageHint.StaticDraw);
@@ -185,6 +189,11 @@ namespace ObjLoader {
 			GL.BindBuffer (BufferTarget.ArrayBuffer, colourVbo);
 			GL.VertexAttribPointer (1, 3, VertexAttribPointerType.Float, true, Vector3.SizeInBytes, 0);
 			shader.BindAttribute (1, "in_colour");
+
+			GL.EnableVertexAttribArray (2);
+			GL.BindBuffer (BufferTarget.ArrayBuffer, normalVbo);
+			GL.VertexAttribPointer (2, 3, VertexAttribPointerType.Float, true, Vector3.SizeInBytes, 0);
+			shader.BindAttribute (1, "in_normal");
 
 			GL.BindBuffer (BufferTarget.ElementArrayBuffer, indexVbo);
 			GL.BindVertexArray (0);
