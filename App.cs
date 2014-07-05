@@ -7,29 +7,6 @@ using OpenTK.Input;
 namespace ObjLoader {
 	public class ObjLoaderApp: GameWindow
 	{
-		string vertexShaderSource = @"
-#version 330
- 
-layout (location = 0) in vec3 in_position;
-
-uniform mat4 projection_matrix;
-uniform mat4 modelview_matrix;
- 
-void main()
-{
-	gl_Position = projection_matrix * modelview_matrix * vec4(in_position, 1);
-}";
-
-		string fragmentShaderSource = @"
-#version 330
-
-out vec4 out_frag_color;
- 
-void main()
-{
-	out_frag_color = vec4(1.0, 0.0, 0.0, 1.0);
-}";
-
 		Vector3[] positionData = new Vector3[]{
 			// Front face
 			new Vector3 (-1.0f, -1.0f, 1.0f), 
@@ -110,7 +87,8 @@ void main()
 			23, 22, 21, 21, 20, 23
 		};
 
-		int shaderProgramHandle, vertexShaderHandle, fragmentShaderHandle;
+//		int shaderProgramHandle, vertexShaderHandle, fragmentShaderHandle;
+		Shader shader;
 		int posVbo, /*normVbo,*/ indexVbo;
 		int vaoId;
 
@@ -129,6 +107,8 @@ void main()
 			OpenTK.Graphics.GraphicsContextFlags.Default | OpenTK.Graphics.GraphicsContextFlags.Debug)
 		{
 			Keyboard.KeyDown += HandleKeyDown;
+
+			shader = new Shader ("default.vert", "default.frag");
 		}
 
 		void HandleKeyDown (object sender, KeyboardKeyEventArgs e)
@@ -161,7 +141,8 @@ void main()
 			GL.EnableVertexAttribArray (0);
 			GL.BindBuffer (BufferTarget.ArrayBuffer, posVbo);
 			GL.VertexAttribPointer (0, 3, VertexAttribPointerType.Float, true, Vector3.SizeInBytes, 0);
-			GL.BindAttribLocation (shaderProgramHandle, 0, "in_position");
+//			GL.BindAttribLocation (shaderProgramHandle, 0, "in_position");
+			shader.BindAttribute (0, "in_position");
 
 //			GL.EnableVertexAttribArray (1);
 //			GL.BindBuffer (BufferTarget.ArrayBuffer, normVbo);
@@ -174,28 +155,8 @@ void main()
 
 		void CreateShaders()
 		{
-			shaderProgramHandle = GL.CreateProgram();
-
-			vertexShaderHandle = GL.CreateShader(ShaderType.VertexShader);
-			fragmentShaderHandle = GL.CreateShader(ShaderType.FragmentShader);
-
-			GL.ShaderSource(vertexShaderHandle, vertexShaderSource);
-			GL.ShaderSource(fragmentShaderHandle, fragmentShaderSource);
-
-			GL.CompileShader(vertexShaderHandle);
-			GL.CompileShader(fragmentShaderHandle);
-			Console.WriteLine(GL.GetShaderInfoLog(vertexShaderHandle));
-			Console.WriteLine(GL.GetShaderInfoLog(fragmentShaderHandle));
-
-			GL.AttachShader(shaderProgramHandle, vertexShaderHandle);
-			GL.AttachShader(shaderProgramHandle, fragmentShaderHandle);
-			GL.LinkProgram(shaderProgramHandle);
-			Console.WriteLine(GL.GetProgramInfoLog(shaderProgramHandle));
-			GL.UseProgram(shaderProgramHandle);
-
-			// Set uniforms
-			projectionMatrixLoc = GL.GetUniformLocation(shaderProgramHandle, "projection_matrix");
-			modelviewMatrixLoc = GL.GetUniformLocation(shaderProgramHandle, "modelview_matrix");
+			projectionMatrixLoc = shader.GetUniform ("projection_matrix");
+			modelviewMatrixLoc = shader.GetUniform ("modelview_matrix");
 
 			float aspectRatio = ClientSize.Width / (float)(ClientSize.Height);
 			Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, aspectRatio, 1, 100, out projectionMatrix);
@@ -220,6 +181,8 @@ void main()
 			base.OnRenderFrame (e);
 
 			GL.Clear (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+
+			shader.Use ();
 
 			GL.BindVertexArray (vaoId);
 			GL.DrawElements (PrimitiveType.Triangles, indexData.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
