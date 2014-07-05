@@ -25,14 +25,17 @@ namespace ObjLoader
 
 			GL.CompileShader(vertexId);
 			GL.CompileShader(fragmentId);
+
 			Console.WriteLine(GL.GetShaderInfoLog(vertexId));
 			Console.WriteLine(GL.GetShaderInfoLog(fragmentId));
 
 			GL.AttachShader(programId, vertexId);
 			GL.AttachShader(programId, fragmentId);
 			GL.LinkProgram(programId);
+
 			Console.WriteLine(GL.GetProgramInfoLog(programId));
-			GL.UseProgram(programId);
+
+			Use ();
 
 			return 0;
 		}

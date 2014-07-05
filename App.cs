@@ -39,6 +39,45 @@ namespace ObjLoader {
 			new Vector3 (-1.0f, -1.0f, -1.0f), 
 			new Vector3 (1.0f, -1.0f, -1.0f) };
 
+		Vector3[] colourData = new Vector3[] {
+			new Vector3(0.583f, 0.771f, 0.014f),
+			new Vector3(0.609f, 0.115f, 0.436f),
+			new Vector3(0.327f, 0.483f, 0.844f),
+			new Vector3(0.822f, 0.569f, 0.201f),
+			new Vector3(0.435f, 0.602f, 0.223f),
+			new Vector3(0.310f, 0.747f, 0.185f),
+			new Vector3(0.597f, 0.770f, 0.761f),
+			new Vector3(0.559f, 0.436f, 0.730f),
+			new Vector3(0.359f, 0.583f, 0.152f),
+			new Vector3(0.483f, 0.596f, 0.789f),
+			new Vector3(0.559f, 0.861f, 0.639f),
+			new Vector3(0.195f, 0.548f, 0.859f),
+			new Vector3(0.014f, 0.184f, 0.576f),
+			new Vector3(0.771f, 0.328f, 0.970f),
+			new Vector3(0.406f, 0.615f, 0.116f),
+			new Vector3(0.676f, 0.977f, 0.133f),
+			new Vector3(0.971f, 0.572f, 0.833f),
+			new Vector3(0.140f, 0.616f, 0.489f),
+			new Vector3(0.997f, 0.513f, 0.064f),
+			new Vector3(0.945f, 0.719f, 0.592f),
+			new Vector3(0.543f, 0.021f, 0.978f),
+			new Vector3(0.279f, 0.317f, 0.505f),
+			new Vector3(0.167f, 0.620f, 0.077f),
+			new Vector3(0.347f, 0.857f, 0.137f),
+			new Vector3(0.055f, 0.953f, 0.042f),
+			new Vector3(0.714f, 0.505f, 0.345f),
+			new Vector3(0.783f, 0.290f, 0.734f),
+			new Vector3(0.722f, 0.645f, 0.174f),
+			new Vector3(0.302f, 0.455f, 0.848f),
+			new Vector3(0.225f, 0.587f, 0.040f),
+			new Vector3(0.517f, 0.713f, 0.338f),
+			new Vector3(0.053f, 0.959f, 0.120f),
+			new Vector3(0.393f, 0.621f, 0.362f),
+			new Vector3(0.673f, 0.211f, 0.457f),
+			new Vector3(0.820f, 0.883f, 0.371f),
+			new Vector3(0.982f, 0.099f, 0.879f)
+		};
+
 		Vector3[] normalData = new Vector3[] {
 			// Front face
 			new Vector3 ( 0f, 0f, 1f), 
@@ -86,10 +125,9 @@ namespace ObjLoader {
 			// Bottom Face
 			23, 22, 21, 21, 20, 23
 		};
-
-//		int shaderProgramHandle, vertexShaderHandle, fragmentShaderHandle;
+			
 		Shader shader;
-		int posVbo, /*normVbo,*/ indexVbo;
+		int posVbo, indexVbo, colourVbo;
 		int vaoId;
 
 		int modelviewMatrixLoc, projectionMatrixLoc;
@@ -123,9 +161,9 @@ namespace ObjLoader {
 			GL.BindBuffer (BufferTarget.ArrayBuffer, posVbo);
 			GL.BufferData<Vector3> (BufferTarget.ArrayBuffer, new IntPtr (positionData.Length * Vector3.SizeInBytes), positionData, BufferUsageHint.StaticDraw);
 
-//			GL.GenBuffers (1, out normVbo);
-//			GL.BindBuffer (BufferTarget.ArrayBuffer, posVbo);
-//			GL.BufferData<Vector3> (BufferTarget.ArrayBuffer, new IntPtr (normalData.Length * Vector3.SizeInBytes), normalData, BufferUsageHint.StaticDraw);
+			GL.GenBuffers (1, out colourVbo);
+			GL.BindBuffer (BufferTarget.ArrayBuffer, colourVbo);
+			GL.BufferData<Vector3> (BufferTarget.ArrayBuffer, new IntPtr (colourData.Length * Vector3.SizeInBytes), colourData, BufferUsageHint.StaticDraw);
 
 			GL.GenBuffers (1, out indexVbo);
 			GL.BindBuffer (BufferTarget.ElementArrayBuffer, indexVbo);
@@ -141,13 +179,12 @@ namespace ObjLoader {
 			GL.EnableVertexAttribArray (0);
 			GL.BindBuffer (BufferTarget.ArrayBuffer, posVbo);
 			GL.VertexAttribPointer (0, 3, VertexAttribPointerType.Float, true, Vector3.SizeInBytes, 0);
-//			GL.BindAttribLocation (shaderProgramHandle, 0, "in_position");
 			shader.BindAttribute (0, "in_position");
 
-//			GL.EnableVertexAttribArray (1);
-//			GL.BindBuffer (BufferTarget.ArrayBuffer, normVbo);
-//			GL.VertexAttribPointer (1, 3, VertexAttribPointerType.Float, true, Vector3.SizeInBytes, 0);
-//			GL.BindAttribLocation (shaderProgramHandle, 1, "in_normal");
+			GL.EnableVertexAttribArray (1);
+			GL.BindBuffer (BufferTarget.ArrayBuffer, colourVbo);
+			GL.VertexAttribPointer (1, 3, VertexAttribPointerType.Float, true, Vector3.SizeInBytes, 0);
+			shader.BindAttribute (1, "in_colour");
 
 			GL.BindBuffer (BufferTarget.ElementArrayBuffer, indexVbo);
 			GL.BindVertexArray (0);
@@ -159,7 +196,7 @@ namespace ObjLoader {
 			modelviewMatrixLoc = shader.GetUniform ("modelview_matrix");
 
 			float aspectRatio = ClientSize.Width / (float)(ClientSize.Height);
-			Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, aspectRatio, 1, 100, out projectionMatrix);
+			Matrix4.CreatePerspectiveFieldOfView(0.75f, aspectRatio, 1, 100, out projectionMatrix);
 			modelviewMatrix = Matrix4.LookAt(new Vector3(0, 3, 5), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
 
 			GL.UniformMatrix4(projectionMatrixLoc, false, ref projectionMatrix);
@@ -171,6 +208,9 @@ namespace ObjLoader {
 			base.OnLoad (e);
 
 			GL.ClearColor (Color.CornflowerBlue);
+
+			GL.Enable (EnableCap.DepthTest);
+			GL.DepthFunc (DepthFunction.Less);
 
 			CreateVertexBuffer ();
 			CreateShaders ();
