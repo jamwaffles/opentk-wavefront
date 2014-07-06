@@ -11,6 +11,7 @@ out vec3 Normal_cameraspace;
 out vec3 EyeDirection_cameraspace;
 out vec3 LightDirection_cameraspace;
 out vec3 Position_worldspace;
+out vec3 LightPosition_worldspace_frag;
 
 const vec3 LightPosition_worldspace = vec3(2.0, 1.0, 2.0);
  
@@ -33,4 +34,6 @@ void main()
 	 
 	// Normal of the the vertex, in camera space
 	Normal_cameraspace = ( projection_matrix * modelview_matrix * vec4(in_normal,0)).xyz; // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
+
+	LightPosition_worldspace_frag = LightPosition_worldspace;
 }

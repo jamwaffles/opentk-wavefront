@@ -2,7 +2,7 @@
 
 // in vec3 frag_colour;
 
-in vec3 LightPosition_worldspace;
+in vec3 LightPosition_worldspace_frag;
 in vec3 Position_worldspace;
 in vec3 LightDirection_cameraspace;
 in vec3 Normal_cameraspace;
@@ -22,7 +22,7 @@ const vec3 material_ambient = vec3(0.2, 0.2, 0.2) * material_diffuse;
 const vec3 light_colour = vec3(0.8, 0.8, 1.0);
 float light_power = 20.0;
 
-float dist = distance(LightPosition_worldspace, Position_worldspace);
+float dist = distance(LightPosition_worldspace_frag, Position_worldspace);
 
 void main()
 {
