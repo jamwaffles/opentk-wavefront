@@ -7,22 +7,16 @@ layout (location = 2) in vec3 in_normal;
 uniform mat4 projection_matrix;
 uniform mat4 modelview_matrix;
 
-// out vec3 frag_colour;
-
 out vec3 Normal_cameraspace;
 out vec3 EyeDirection_cameraspace;
 out vec3 LightDirection_cameraspace;
 out vec3 Position_worldspace;
 
-const vec3 LightPosition_worldspace = vec3(2.0, 2.0, 2.0);
+const vec3 LightPosition_worldspace = vec3(2.0, 1.0, 2.0);
  
 void main()
 {
- 	// frag_colour = in_colour;
-
-	// gl_Position = projection_matrix * modelview_matrix * vec4(in_position, 1);
-
-	// Output position of the vertex, in clip space : MVP * position
+ 	// Output position of the vertex, in clip space : MVP * position
 	gl_Position =  projection_matrix * modelview_matrix * vec4(in_position,1);
 	 
 	// Position of the vertex, in worldspace : modelview_matrix * position
@@ -39,5 +33,4 @@ void main()
 	 
 	// Normal of the the vertex, in camera space
 	Normal_cameraspace = ( projection_matrix * modelview_matrix * vec4(in_normal,0)).xyz; // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
-
 }
