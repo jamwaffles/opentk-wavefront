@@ -12,11 +12,14 @@ out vec3 EyeDirection_cameraspace;
 out vec3 LightDirection_cameraspace;
 out vec3 Position_worldspace;
 out vec3 LightPosition_worldspace_frag;
+out vec3 Diffuse;
 
 const vec3 LightPosition_worldspace = vec3(2.0, 1.0, 2.0);
  
 void main()
 {
+ 	Diffuse = in_colour;
+
  	// Output position of the vertex, in clip space : MVP * position
 	gl_Position =  projection_matrix * modelview_matrix * vec4(in_position,1);
 	 
