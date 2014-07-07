@@ -18,9 +18,9 @@ vec3 l = normalize( LightDirection_cameraspace );
 
 float cosTheta = clamp( dot( n,l ), 0,1 );
 
-vec3 material_ambient = vec3(0.4, 0.4, 0.4) * Diffuse;
+vec3 material_ambient = vec3(0.2, 0.2, 0.2) * Diffuse;
 const vec3 light_colour = vec3(0.8, 0.8, 1.0);
-float light_power = 20.0;
+float light_power = 100.0;
 
 float dist = distance(LightPosition_worldspace_frag, Position_worldspace);
 
