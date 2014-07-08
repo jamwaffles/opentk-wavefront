@@ -233,8 +233,8 @@ namespace ObjLoader {
 
 			shader.Use ();
 
-			GL.BindBuffer (BufferTarget.ElementArrayBuffer, indexVbo);
 			GL.BindVertexArray (vaoId);
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, indexVbo);
 			GL.DrawElements (PrimitiveType.Triangles, indexData.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
 
 			SwapBuffers ();
