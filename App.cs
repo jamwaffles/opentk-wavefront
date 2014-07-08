@@ -195,7 +195,7 @@ namespace ObjLoader {
 			GL.VertexAttribPointer (2, 3, VertexAttribPointerType.Float, true, Vector3.SizeInBytes, 0);
 			shader.BindAttribute (1, "in_normal");
 
-			GL.BindBuffer (BufferTarget.ElementArrayBuffer, indexVbo);
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, 0);
 			GL.BindVertexArray (0);
 		}
 
@@ -233,6 +233,7 @@ namespace ObjLoader {
 
 			shader.Use ();
 
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, indexVbo);
 			GL.BindVertexArray (vaoId);
 			GL.DrawElements (PrimitiveType.Triangles, indexData.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
 
